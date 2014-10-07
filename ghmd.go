@@ -182,7 +182,9 @@ func watch(path string, out *os.File) {
 	<-done
 }
 
+// defaultCmd tries to determine the user's default web browser.
 func defaultCmd() (string, error) {
+	// TODO use a more robust approach
 	switch runtime.GOOS {
 	case "linux":
 		return "xdg-open", nil
