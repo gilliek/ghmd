@@ -16,6 +16,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"path/filepath"
+
+	"github.com/go-fsnotify/fsnotify"
 )
 
 // CSS taken from https://gist.github.com/andyferra/2554919
@@ -124,9 +128,41 @@ func render(path string) {
 	}
 	defer resp.Body.Close()
 
-	// display the resulting output into the stdout
 	fmt.Println("<style>", githubCSS, "</style>")
 	fmt.Println(readBody(resp.Body))
+}
+
+func watch(path string) {
+	fileName := filepath.Base(path)
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt)
+
+	go func() {
+		for {
+			select {
+			case ev := <-watcher.Events:
+				if filepath.Base(ev.Name) == fileName && ev.Op == fsnotify.Write {
+					render(path)
+				}
+			case err := <-watcher.Errors:
+				log.Println("error:", err)
+			}
+		}
+	}()
+
+	err = watcher.Add(filepath.Dir(path))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	<-done
 }
 
 func main() {
@@ -135,6 +171,10 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+
+	var watchFlag bool
+	flag.BoolVar(&watchFlag, "w", false, "Watch Markdown file change")
+
 	flag.Parse()
 
 	if len(flag.Args()) != 1 {
@@ -142,5 +182,11 @@ func main() {
 		flag.Usage()
 	}
 
-	render(flag.Arg(0))
+	path := flag.Arg(0)
+
+	render(path)
+
+	if watchFlag {
+		watch(path)
+	}
 }
