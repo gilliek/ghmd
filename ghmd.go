@@ -103,20 +103,8 @@ func readBody(ioBody io.ReadCloser) string {
 	return string(body)
 }
 
-func main() {
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "usage: %s [markdown file]\n", os.Args[0])
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	flag.Parse()
-
-	if len(flag.Args()) != 1 {
-		fmt.Fprintln(os.Stderr, "Invalid # of arguments!")
-		flag.Usage()
-	}
-
-	md, err := ioutil.ReadFile(flag.Arg(0))
+func render(path string) {
+	md, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -139,4 +127,20 @@ func main() {
 	// display the resulting output into the stdout
 	fmt.Println("<style>", githubCSS, "</style>")
 	fmt.Println(readBody(resp.Body))
+}
+
+func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "usage: %s [markdown file]\n", os.Args[0])
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	flag.Parse()
+
+	if len(flag.Args()) != 1 {
+		fmt.Fprintln(os.Stderr, "Invalid # of arguments!")
+		flag.Usage()
+	}
+
+	render(flag.Arg(0))
 }
