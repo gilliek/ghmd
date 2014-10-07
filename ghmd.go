@@ -93,6 +93,11 @@ pre code { margin: 0; padding: 0; white-space: pre; border: none; background: tr
 pre { background-color: #f8f8f8; border: 1px solid #cccccc; font-size: 13px; line-height: 19px; overflow: auto; padding: 6px 10px; border-radius: 3px; }
   pre code, pre tt { background-color: transparent; border: none; }`
 
+const (
+	doctype = "<!DOCTYPE html>"
+	head    = "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head>"
+)
+
 type markdown struct {
 	Text    string `json:"text"`
 	Mode    string `json:"mode"`
@@ -107,7 +112,16 @@ func readBody(ioBody io.ReadCloser) string {
 	return string(body)
 }
 
-func render(path string) {
+func createTempFile() *os.File {
+	f, err := ioutil.TempFile(os.TempDir(), "ghmd")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return f
+}
+
+func render(path string, out *os.File) {
 	md, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
@@ -128,11 +142,11 @@ func render(path string) {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("<style>", githubCSS, "</style>")
-	fmt.Println(readBody(resp.Body))
+	fmt.Fprintln(out, doctype, head, "<body><style>", githubCSS, "</style>")
+	fmt.Fprintln(out, readBody(resp.Body), "</body>")
 }
 
-func watch(path string) {
+func watch(path string, out *os.File) {
 	fileName := filepath.Base(path)
 
 	watcher, err := fsnotify.NewWatcher()
@@ -149,7 +163,7 @@ func watch(path string) {
 			select {
 			case ev := <-watcher.Events:
 				if filepath.Base(ev.Name) == fileName && ev.Op == fsnotify.Write {
-					render(path)
+					render(path, out)
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
@@ -173,7 +187,10 @@ func main() {
 	}
 
 	var watchFlag bool
-	flag.BoolVar(&watchFlag, "w", false, "Watch Markdown file change")
+	flag.BoolVar(&watchFlag, "w", false, "Watch Markdown file change.")
+
+	var outputFile string
+	flag.StringVar(&outputFile, "o", "", "Output file. If not supplied, a temporary file will be created.")
 
 	flag.Parse()
 
@@ -182,11 +199,31 @@ func main() {
 		flag.Usage()
 	}
 
+	// create output file
+	var out *os.File
+	var err error
+	if outputFile == "" {
+		out = createTempFile()
+		fmt.Println("Temporary file created!")
+		fmt.Println(out.Name())
+	} else {
+		out, err = os.Create(outputFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	defer out.Close()
+
 	path := flag.Arg(0)
 
-	render(path)
+	render(path, out)
 
 	if watchFlag {
-		watch(path)
+		watch(path, out)
+	}
+
+	// only remove if it's a temporary file
+	if outputFile == "" {
+		os.Remove(out.Name())
 	}
 }
