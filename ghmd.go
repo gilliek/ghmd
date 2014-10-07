@@ -98,7 +98,7 @@ pre { background-color: #f8f8f8; border: 1px solid #cccccc; font-size: 13px; lin
 
 const (
 	doctype = "<!DOCTYPE html>"
-	head    = "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head>"
+	head    = "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta http-equiv=\"refresh\" content=\"2\"></head>"
 )
 
 type markdown struct {
