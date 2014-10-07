@@ -145,6 +145,16 @@ func render(path string, out *os.File) {
 	}
 	defer resp.Body.Close()
 
+	err = out.Truncate(0)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = out.Seek(0, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Fprintln(out, doctype, head, "<body><style>", githubCSS, "</style>")
 	fmt.Fprintln(out, readBody(resp.Body), "</body>")
 }
