@@ -13,14 +13,13 @@ Build
 
 The only required dependency is Go. Although it should work with any version of Go, I only have tested with Go1.2.
 
-Since it is just a single file without any external dependencies, you can build `ghmd` by simply issuing the following command:
+You can get and build `ghmd` by issuing the following command:
 
-```go build ghmd.go```
+```
+go get ghmd.go
+```
 
-Of course, if you are familiar with Go, you can also use the go tools:
-
-```go get github.com/gilliek/ghmd```
-
+(make sure your `$GOPATH` is correctly set)
 
 Download binary
 ---------------
@@ -32,4 +31,19 @@ Usage
 
 Assuming that `ghmd` is in your `$PATH`:
 
-```ghmd README.md > output.html```
+```
+ghmd README.md
+```
+
+You can also use the `-w` switch to automatically update the generated HTML file when the `README.md` is modified:
+
+```
+ghmd -w README.md
+```
+
+For a full description of the options, please use:
+
+```
+ghmd -h
+```
+
