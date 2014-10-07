@@ -9,6 +9,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -16,8 +17,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 
 	"github.com/go-fsnotify/fsnotify"
 )
@@ -179,6 +182,21 @@ func watch(path string, out *os.File) {
 	<-done
 }
 
+func defaultCmd() (string, error) {
+	switch runtime.GOOS {
+	case "linux":
+		return "xdg-open", nil
+	case "darwin":
+		return "open -a Safari", nil
+	case "windows":
+		// TODO
+		return "", errors.New("Not yet implemented")
+	default: // BSDs OS
+		// TODO
+		return "", errors.New("Not yet implemented")
+	}
+}
+
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [markdown file]\n", os.Args[0])
@@ -191,6 +209,9 @@ func main() {
 
 	var outputFile string
 	flag.StringVar(&outputFile, "o", "", "Output file. If not supplied, a temporary file will be created.")
+
+	var runCmdFlag bool
+	flag.BoolVar(&runCmdFlag, "r", false, "Run generated HTML file. It will try to open with your default web browser.")
 
 	flag.Parse()
 
@@ -217,6 +238,20 @@ func main() {
 	path := flag.Arg(0)
 
 	render(path, out)
+
+	if runCmdFlag {
+		runCmd, err := defaultCmd()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cmd := exec.Command(runCmd, out.Name())
+		err = cmd.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+		cmd.Wait()
+	}
 
 	if watchFlag {
 		watch(path, out)
