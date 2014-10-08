@@ -216,9 +216,8 @@ func defaultCmd() (string, error) {
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [markdown file]\n", os.Args[0])
-		fmt.Fprintln(os.Stderr, "version:", version)
 		flag.PrintDefaults()
-		os.Exit(1)
+		os.Exit(0)
 	}
 
 	var versionFlag bool
