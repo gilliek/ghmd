@@ -235,7 +235,7 @@ func main() {
 	flag.Parse()
 
 	if versionFlag {
-		fmt.Printf("%s - %s\n", os.Args[0], version)
+		fmt.Println(os.Args[0], version)
 		os.Exit(0)
 	}
 
