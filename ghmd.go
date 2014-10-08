@@ -24,6 +24,9 @@ import (
 	"github.com/go-fsnotify/fsnotify"
 )
 
+// program version number
+const version = "1.1.0"
+
 // CSS taken from https://gist.github.com/andyferra/2554919
 const githubCSS = `body { font-family: Helvetica, arial, sans-serif; font-size: 14px; line-height: 1.6; padding-top: 10px; padding-bottom: 10px; background-color: white; padding: 30px; }
 body > *:first-child { margin-top: 0 !important; }
@@ -213,9 +216,13 @@ func defaultCmd() (string, error) {
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [markdown file]\n", os.Args[0])
+		fmt.Fprintln(os.Stderr, "version:", version)
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+
+	var versionFlag bool
+	flag.BoolVar(&versionFlag, "v", false, "Display program version number.")
 
 	var watchFlag bool
 	flag.BoolVar(&watchFlag, "w", false, "Watch Markdown file change.")
@@ -227,6 +234,11 @@ func main() {
 	flag.BoolVar(&runCmdFlag, "r", false, "Run generated HTML file. It will try to open with your default web browser.")
 
 	flag.Parse()
+
+	if versionFlag {
+		fmt.Printf("%s - %s\n", os.Args[0], version)
+		os.Exit(0)
+	}
 
 	if len(flag.Args()) != 1 {
 		fmt.Fprintln(os.Stderr, "Invalid # of arguments!")
