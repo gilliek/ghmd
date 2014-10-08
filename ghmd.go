@@ -25,7 +25,7 @@ import (
 )
 
 // program version number
-const version = "1.1.0"
+const version = "1.1.1"
 
 // CSS taken from https://gist.github.com/andyferra/2554919
 const githubCSS = `body { font-family: Helvetica, arial, sans-serif; font-size: 14px; line-height: 1.6; padding-top: 10px; padding-bottom: 10px; background-color: white; padding: 30px; }
