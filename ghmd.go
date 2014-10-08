@@ -142,6 +142,7 @@ func render(path string, out *os.File) {
 		"application/json", bytes.NewBuffer(buf))
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	defer resp.Body.Close()
 
@@ -245,7 +246,16 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	defer out.Close()
+	defer func() {
+		out.Close()
+		// only remove if it's a temporary file and if -w switch is enabled
+		if outputFile == "" && watchFlag {
+			err = os.Remove(out.Name())
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}()
 
 	path := flag.Arg(0)
 
@@ -267,10 +277,5 @@ func main() {
 
 	if watchFlag {
 		watch(path, out)
-	}
-
-	// only remove if it's a temporary file
-	if outputFile == "" {
-		os.Remove(out.Name())
 	}
 }
