@@ -16,7 +16,7 @@ The only required dependency is Go. Although it should work with any version of 
 You can get and build `ghmd` by issuing the following command:
 
 ```
-go get ghmd.go
+go get github.com/gilliek/ghmd
 ```
 
 (make sure your `$GOPATH` is correctly set)
