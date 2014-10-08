@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -107,10 +106,15 @@ type markdown struct {
 	Context string `json:"context"`
 }
 
+func fatal(err error) {
+	fmt.Fprintln(os.Stderr, err)
+	os.Exit(0)
+}
+
 func readBody(ioBody io.ReadCloser) string {
 	body, err := ioutil.ReadAll(ioBody)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 	return string(body)
 }
@@ -118,7 +122,7 @@ func readBody(ioBody io.ReadCloser) string {
 func createTempFile() *os.File {
 	f, err := ioutil.TempFile(os.TempDir(), "ghmd")
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	return f
@@ -127,7 +131,7 @@ func createTempFile() *os.File {
 func render(path string, out *os.File) {
 	md, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	buf, err := json.Marshal(markdown{
@@ -135,25 +139,25 @@ func render(path string, out *os.File) {
 		Mode: "markdown",
 	})
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	resp, err := http.Post("https://api.github.com/markdown",
 		"application/json", bytes.NewBuffer(buf))
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 		return
 	}
 	defer resp.Body.Close()
 
 	err = out.Truncate(0)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	_, err = out.Seek(0, 0)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	fmt.Fprintln(out, doctype, head, "<body><style>", githubCSS, "</style>")
@@ -165,7 +169,7 @@ func watch(path string, out *os.File) {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 	defer watcher.Close()
 
@@ -180,14 +184,14 @@ func watch(path string, out *os.File) {
 					render(path, out)
 				}
 			case err := <-watcher.Errors:
-				log.Println("error:", err)
+				fmt.Fprintln(os.Stderr, "error:", err)
 			}
 		}
 	}()
 
 	err = watcher.Add(filepath.Dir(path))
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	<-done
@@ -195,18 +199,14 @@ func watch(path string, out *os.File) {
 
 // defaultCmd tries to determine the user's default web browser.
 func defaultCmd() (string, error) {
-	// TODO use a more robust approach
 	switch runtime.GOOS {
-	case "linux":
+	case "linux", "freebsd", "dragonfly", "openbsd", "netbsd":
 		return "xdg-open", nil
 	case "darwin":
 		return "open -a Safari", nil
-	case "windows":
-		// TODO
-		return "", errors.New("Not yet implemented")
 	default: // BSDs OS
 		// TODO
-		return "", errors.New("Not yet implemented")
+		return "", errors.New("Not yet implemented for " + runtime.GOOS)
 	}
 }
 
@@ -243,7 +243,7 @@ func main() {
 	} else {
 		out, err = os.Create(outputFile)
 		if err != nil {
-			log.Fatal(err)
+			fatal(err)
 		}
 	}
 	defer func() {
@@ -252,7 +252,7 @@ func main() {
 		if outputFile == "" && watchFlag {
 			err = os.Remove(out.Name())
 			if err != nil {
-				log.Fatal(err)
+				fatal(err)
 			}
 		}
 	}()
@@ -264,13 +264,13 @@ func main() {
 	if runCmdFlag {
 		runCmd, err := defaultCmd()
 		if err != nil {
-			log.Fatal(err)
+			fatal(err)
 		}
 
 		cmd := exec.Command(runCmd, out.Name())
 		err = cmd.Start()
 		if err != nil {
-			log.Fatal(err)
+			fatal(err)
 		}
 		cmd.Wait()
 	}
