@@ -24,7 +24,15 @@ go get github.com/gilliek/ghmd
 Download binary
 ---------------
 
-If you want to download a binary file, you can use [Gobuild.IO](http://gobuild.io/download/github.com/gilliek/ghmd)
+If you want to download a binary file, you can use the [Gobuild.IO](http://gobuild.io/download/github.com/gilliek/ghmd) service.
+
+Linux packages
+--------------
+
+### Archlinux
+
+[AUR package](https://aur.archlinux.org/packages/ghmd-bin) (thanks to [Rolinh](https://github.com/Rolinh) for maintaining the package).
+
 
 Usage
 -----
