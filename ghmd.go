@@ -99,8 +99,8 @@ pre { background-color: #f8f8f8; border: 1px solid #cccccc; font-size: 13px; lin
   pre code, pre tt { background-color: transparent; border: none; }`
 
 const (
-	doctype = "<!DOCTYPE html>"
-	head    = "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"><meta http-equiv=\"refresh\" content=\"2\"></head>"
+	doctype    = "<!DOCTYPE html>"
+	headFormat = "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">%s</head>"
 )
 
 type markdown struct {
@@ -131,7 +131,7 @@ func createTempFile() *os.File {
 	return f
 }
 
-func render(path string, out *os.File) {
+func render(path string, out *os.File, refresh bool) {
 	md, err := ioutil.ReadFile(path)
 	if err != nil {
 		fatal(err)
@@ -163,6 +163,14 @@ func render(path string, out *os.File) {
 		fatal(err)
 	}
 
+	var head string
+
+	if refresh {
+		head = fmt.Sprintf(headFormat, "<meta http-equiv=\"refresh\" content=\"2\">")
+	} else {
+		head = fmt.Sprintf(headFormat, "")
+	}
+
 	fmt.Fprintln(out, doctype, head, "<body><style>", githubCSS, "</style>")
 	fmt.Fprintln(out, readBody(resp.Body), "</body>")
 }
@@ -184,7 +192,7 @@ func watch(path string, out *os.File) {
 			select {
 			case ev := <-watcher.Events:
 				if filepath.Base(ev.Name) == fileName && ev.Op == fsnotify.Write {
-					render(path, out)
+					render(path, out, true)
 				}
 			case err := <-watcher.Errors:
 				fmt.Fprintln(os.Stderr, "error:", err)
@@ -274,7 +282,7 @@ func main() {
 		}
 	}()
 
-	render(path, out)
+	render(path, out, false)
 
 	if runCmdFlag {
 		runCmd, err := defaultCmd()
