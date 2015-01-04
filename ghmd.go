@@ -109,9 +109,9 @@ type markdown struct {
 	Context string `json:"context"`
 }
 
-func fatal(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(0)
+func fatal(a ...interface{}) {
+	fmt.Fprintln(os.Stderr, a...)
+	os.Exit(1)
 }
 
 func readBody(ioBody io.ReadCloser) string {
@@ -244,9 +244,15 @@ func main() {
 		flag.Usage()
 	}
 
+	var err error
+
+	path := flag.Arg(0)
+	if _, err = os.Stat(path); os.IsNotExist(err) {
+		fatal("input markdown file does not exist")
+	}
+
 	// create output file
 	var out *os.File
-	var err error
 	if outputFile == "" {
 		out = createTempFile()
 		fmt.Println("Temporary file created!")
@@ -267,8 +273,6 @@ func main() {
 			}
 		}
 	}()
-
-	path := flag.Arg(0)
 
 	render(path, out)
 
