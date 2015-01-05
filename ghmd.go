@@ -215,8 +215,7 @@ func defaultCmd() (string, error) {
 		return "xdg-open", nil
 	case "darwin":
 		return "open -a Safari", nil
-	default: // BSDs OS
-		// TODO
+	default:
 		return "", errors.New("Not yet implemented for " + runtime.GOOS)
 	}
 }
