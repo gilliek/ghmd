@@ -7,8 +7,11 @@ install:
 	go install ${PKG}
 
 uninstall:
-	rm ${GOPATH}/bin/${EXEC}
+	rm -f ${GOPATH}/bin/${EXEC}
 
 build:
 	go build ${PKG}
+
+clean:
+	rm -f ${ghmd}
 
