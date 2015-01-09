@@ -25,7 +25,7 @@ import (
 )
 
 // program version number
-const version = "1.3.1"
+const version = "1.3.3"
 
 const (
 	doctype    = "<!DOCTYPE html>"
