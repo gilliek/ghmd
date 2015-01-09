@@ -68,7 +68,7 @@ func render(path string, out *os.File, refresh bool) {
 
 	buf, err := json.Marshal(markdown{
 		Text: string(md),
-		Mode: "markdown",
+		Mode: "gfm",
 	})
 	if err != nil {
 		fatal(err)
