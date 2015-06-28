@@ -100,8 +100,8 @@ func render(path string, out *os.File, refresh bool) {
 		head = fmt.Sprintf(headFormat, "")
 	}
 
-	fmt.Fprintln(out, doctype, head, `<body class="markdown-body"><style>`, githubCSS, `</style>`)
-	fmt.Fprintln(out, readBody(resp.Body), "</body>")
+	fmt.Fprintln(out, doctype, head, `<style>`, githubCSS, `</style><body><div class="readme"><article class="markdown-body">`)
+	fmt.Fprintln(out, readBody(resp.Body), "</article></div></body>")
 }
 
 func watch(path string, out *os.File) {
